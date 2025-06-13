@@ -1,0 +1,56 @@
+
+/* ProductList.css */
+.pl-container {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.pl-title {
+  font-weight: 600;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.pl-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+}
+
+.pl-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+}
+
+.pl-card-img {
+  height: 200px;
+  object-fit: contain;
+  padding: 10px;
+}
+
+.pl-card-title {
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+.pl-card-price {
+  color: #28a745;
+}
+
+.pl-view-btn {
+  transition: background-color 0.3s;
+}
+
+.pl-view-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Optional animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

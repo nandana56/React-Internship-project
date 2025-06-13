@@ -1,0 +1,50 @@
+/* Logo image */
+.logo-img {
+  width: 40px;
+}
+
+/* Search */
+.search-group {
+  transition: width 0.3s ease;
+  width: 200px;
+  position: relative; /* needed for search-icon positioning */
+}
+
+.search-input {
+  padding-right: 2rem;
+  border-radius: 25px;
+}
+
+.search-icon {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: gray;
+  cursor: pointer;
+}
+
+/* Order Button */
+.order-btn {
+  border-radius: 25px;
+}
+
+.order-text {
+  display: none;
+}
+
+.order-btn:hover .order-text {
+  display: inline;
+}
+
+/* Navbar wrapper */
+.navbar-wrapper {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
+  position: relative;
+}
+
+/* Hide Bootstrap's default dropdown caret */
+.nav-link.dropdown-toggle::after {
+  display: none;
+}

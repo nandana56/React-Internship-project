@@ -1,0 +1,31 @@
+.useraccount-container {
+  min-height: 80vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f0f4f8, #dfefff);
+  padding: 2rem;
+}
+
+.useraccount-card {
+  background-color: white;
+  padding: 2.5rem;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+  max-width: 600px;
+  width: 100%;
+}
+
+.useraccount-title {
+  font-size: 1.8rem;
+  margin-bottom: 1.5rem;
+  color: #007bff;
+  text-align: center;
+}
+
+.useraccount-info p {
+  font-size: 1rem;
+  margin-bottom: 0.75rem;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 5px;
+}

@@ -1,0 +1,40 @@
+/* Banner.css */
+.banner-section {
+  min-height: 550px;
+  background-color: #f9f9f9;
+}
+
+.banner-img {
+  max-width: 400px;
+  height: 350px;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: -10px 10px 12px rgba(0, 0, 0, 1);
+}
+
+.icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  width: 48px;
+  padding: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 5px rgba(0, 0, 0, 0.15);
+}
+
+.bg-purple {
+  background-color: #e0bbff;
+}
+
+.bg-orange {
+  background-color: #ffddb0;
+}
+
+.bg-success {
+  background-color: #a6f3c2;
+}
+
+.bg-warning {
+  background-color: #ffe69c;
+}

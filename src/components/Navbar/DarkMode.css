@@ -1,0 +1,19 @@
+.theme-toggle {
+  width: 3rem; /* w-12 equivalent */
+  cursor: pointer;
+  box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.1);
+  transition: opacity 0.3s ease-in-out;
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+.opacity-0 {
+  opacity: 0;
+  pointer-events: none; /* prevent click when hidden */
+}
+
+.opacity-100 {
+  opacity: 1;
+  pointer-events: auto;
+}

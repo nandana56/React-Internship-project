@@ -1,0 +1,14 @@
+/* App.css */
+.app-container {
+  background-color: white;
+  color: black;
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+/* Optional: dark mode support (manual toggle or via media query) */
+@media (prefers-color-scheme: dark) {
+  .app-container {
+    background-color: #111827; /* Approx gray-900 */
+    color: white;
+  }
+}

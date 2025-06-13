@@ -1,0 +1,29 @@
+.user-profile-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background: linear-gradient(to right, #f8f9fa, #e0f7fa);
+  padding: 2rem;
+}
+
+.user-profile-card {
+  background-color: white;
+  padding: 3rem;
+  border-radius: 20px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  max-width: 500px;
+  width: 100%;
+}
+
+.user-profile-welcome {
+  font-size: 2.5rem;
+  color: #007bff;
+  margin-bottom: 1rem;
+}
+
+.user-profile-info {
+  font-size: 1.2rem;
+  color: #555;
+}
