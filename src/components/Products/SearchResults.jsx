@@ -6,6 +6,9 @@ const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const role = currentUser?.role;
+
   const query = new URLSearchParams(location.search).get("q")?.toLowerCase() || "";
 
   const results = products.filter(
@@ -32,7 +35,13 @@ const SearchResults = () => {
                   <p className="card-text">₹{product.price}</p>
                   <button
                     className="btn btn-primary"
-                    onClick={() => navigate(`/viewproduct/${product.id}`)}
+                    onClick={() => {
+                      if (role === "admin") {
+                        navigate(`/admin/viewproduct/${product.id}`);
+                      } else {
+                        navigate(`/user/viewproduct/${product.id}`);
+                      }
+                    }}
                   >
                     View
                   </button>

@@ -8,15 +8,21 @@ const TrendingProducts = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Shuffle the products array and take first 6 as trending
     const shuffled = [...products].sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, 16);
     setTrending(selected);
   }, []);
 
   const handleView = (id) => {
-    navigate(`/user/viewproduct/${id}`);
-  };
+  const user = JSON.parse(localStorage.getItem("currentUser"));
+  const role = user?.role || "user";
+  const path =
+    role === "admin"
+      ? `/admin/viewproduct/${id}`
+      : `/user/viewproduct/${id}`;
+  navigate(path);
+};
+
 
   return (
     <div className="trending-products-container">
@@ -27,10 +33,17 @@ const TrendingProducts = () => {
         <div className="product-grid">
           {trending.map((product) => (
             <div key={product.id} className="product-card">
-              <img src={product.image} alt={product.name} className="product-image" />
+              <img
+                src={product.image}
+                alt={product.name}
+                className="product-image"
+              />
               <h3 className="product-name">{product.name}</h3>
               <p className="product-price">₹{product.price}</p>
-              <button className="view-button" onClick={() => handleView(product.id)}>
+              <button
+                className="view-button"
+                onClick={() => handleView(product.id)}
+              >
                 View
               </button>
             </div>

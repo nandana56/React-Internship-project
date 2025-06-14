@@ -8,6 +8,8 @@ const ProductList = ({ category, products }) => {
   const [priceFilter, setPriceFilter] = useState("All");
   const [ratingFilter, setRatingFilter] = useState("All");
 
+  const user = JSON.parse(localStorage.getItem("currentUser"));
+
   // Extract unique brands for this category
   const brands = [
     ...new Set(products.filter((p) => p.category === category).map((p) => p.brand)),
@@ -24,9 +26,9 @@ const ProductList = ({ category, products }) => {
     const brandMatch = brandFilter === "All" || p.brand === brandFilter;
     const priceMatch =
       priceFilter === "All" ||
-      (priceFilter === "low" && p.price <= 1000) ||
-      (priceFilter === "mid" && p.price > 1000 && p.price <= 2000) ||
-      (priceFilter === "high" && p.price > 2000);
+      (priceFilter === "low" && p.price <= 700) ||
+      (priceFilter === "mid" && p.price > 700 && p.price <= 1500) ||
+      (priceFilter === "high" && p.price > 1500);
     const ratingMatch =
       ratingFilter === "All" || p.rating >= parseFloat(ratingFilter);
 
@@ -34,7 +36,11 @@ const ProductList = ({ category, products }) => {
   });
 
   const handleView = (product) => {
-    navigate(`/user/viewproduct/${product.id}`, { state: product });
+    if (user?.role === "admin") {
+      navigate(`/admin/viewproduct/${product.id}`, { state: product });
+    } else {
+      navigate(`/user/viewproduct/${product.id}`, { state: product });
+    }
   };
 
   return (
@@ -100,7 +106,7 @@ const ProductList = ({ category, products }) => {
                 <div className="card-body d-flex flex-column justify-content-between">
                   <h5 className="card-title pl-card-title">{item.name}</h5>
                   <p className="card-text fw-bold pl-card-price">₹{item.price}</p>
-                  <small className="text-muted mb-2">⭐ {item.rating}</small>
+                 
                   <button
                     className="btn btn-primary mt-auto pl-view-btn"
                     onClick={() => handleView(item)}

@@ -8,7 +8,12 @@ const TopRatedProducts = () => {
   const topRated = products.filter((product) => product.rating >= 4.5);
 
   const handleView = (id) => {
-    navigate(`/user/viewproduct/${id}`);
+    const user = JSON.parse(localStorage.getItem("currentUser"));
+    const role = user?.role || "user";
+    const path = role === "admin"
+      ? `/admin/viewproduct/${id}`
+      : `/user/viewproduct/${id}`;
+    navigate(path);
   };
 
   return (
