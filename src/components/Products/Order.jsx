@@ -1,113 +1,94 @@
 import React, { useEffect, useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
 
 const Order = () => {
-  const location = useLocation();
-  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
-  const [latestOrderId, setLatestOrderId] = useState(null);
+  const user = JSON.parse(localStorage.getItem("currentUser"));
 
   useEffect(() => {
-    const newOrder = location.state;
-    const storedOrders = JSON.parse(localStorage.getItem("orders")) || [];
-
-    if (newOrder && newOrder.cartItems) {
-      const alreadyExists = storedOrders.some(
-        (order) => order.tempId === newOrder.tempId
-      );
-
-      if (!alreadyExists) {
-        const orderWithMeta = {
-          ...newOrder,
-          date: new Date().toLocaleString(),
-          orderId: `ORD${Math.floor(100000 + Math.random() * 900000)}`,
-          status: "Confirmed",
-        };
-
-        const updatedOrders = [orderWithMeta, ...storedOrders];
-        localStorage.setItem("orders", JSON.stringify(updatedOrders));
-        setOrders(updatedOrders);
-        setLatestOrderId(orderWithMeta.tempId);
-      } else {
-        setOrders(storedOrders);
-        setLatestOrderId(newOrder.tempId); // already exists
-      }
-    } else {
-      setOrders(storedOrders);
+    const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
+    if (user?.userId) {
+      const userOrders = allOrders.filter(order => order.userId === user.userId);
+      setOrders(userOrders);
     }
-  }, [location.state]);
+  }, []);
 
   const handleCancelOrder = (orderId) => {
-    const confirmCancel = window.confirm(
-      "Are you sure you want to cancel this order?"
-    );
-    if (!confirmCancel) return;
+    const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
 
-    const updated = orders.map((order) =>
-      order.orderId === orderId ? { ...order, status: "Cancelled" } : order
-    );
-    setOrders(updated);
-    localStorage.setItem("orders", JSON.stringify(updated));
+    // Update order status
+    const updatedOrders = allOrders.map(order => {
+      if (order.id === orderId && order.userId === user.userId) {
+        return { ...order, status: "Cancelled" };
+      }
+      return order;
+    });
+
+    // Save and update UI
+    localStorage.setItem("orders", JSON.stringify(updatedOrders));
+    const userOrders = updatedOrders.filter(order => order.userId === user.userId);
+    setOrders(userOrders);
   };
 
-  if (orders.length === 0) {
-    return <div className="container mt-5 text-center">No orders found.</div>;
+  if (!user) {
+    return <div className="text-center mt-5">Please log in to view your orders.</div>;
   }
 
-  const newOrders = orders.filter((order) => order.tempId === latestOrderId);
-  const oldOrders = orders.filter((order) => order.tempId !== latestOrderId);
+  if (orders.length === 0) {
+    return <div className="text-center mt-5">You haven't placed any orders yet.</div>;
+  }
 
-  const renderOrderCard = (order, index) => (
-    <div key={`${order.orderId}-${index}`} className="card mb-4 shadow-sm">
+  const newOrders = orders.filter(order => order.status === "Pending");
+  const previousOrders = orders.filter(order => order.status !== "Pending");
+
+  const renderOrderCard = (order) => (
+    <div className="card mb-4" key={order.id}>
       <div className="card-body">
-        <h5 className="card-title">Order ID: {order.orderId}</h5>
-        <h6 className="card-subtitle mb-2 text-muted">Order Date: {order.date}</h6>
-
-        <div className="mt-3">
-          <h6>Items:</h6>
-          <ul className="list-group mb-3">
-            {order.cartItems.map((item) => (
-              <li
-                key={item.id}
-                className="list-group-item d-flex justify-content-between align-items-center"
-              >
-                <div>
-                  <strong>{item.name}</strong>
-                  <br />
-                  <small>Qty: {item.quantity}</small>
-                </div>
-                <span>₹{item.price * item.quantity}</span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <p><strong>Total:</strong> ₹{order.total}</p>
-        <p><strong>Payment Method:</strong> {order.form.paymentMethod.toUpperCase()}</p>
-        {order.paymentReference && (
-          <p><strong>Payment Ref ID:</strong> {order.paymentReference}</p>
-        )}
-        <p>
+        <h5 className="card-title">Order ID: {order.id}</h5>
+        <p className="card-text">
           <strong>Status:</strong>{" "}
-          <span className={`fw-bold ${order.status === "Cancelled" ? "text-danger" : "text-success"}`}>
+          <span className={
+            order.status === "Pending"
+              ? "text-warning"
+              : order.status === "Cancelled"
+              ? "text-danger"
+              : "text-success"
+          }>
             {order.status}
           </span>
         </p>
-
-        <h6 className="mt-3">Shipping Details:</h6>
-        <p className="mb-0">{order.form.fullName}</p>
-        <p className="mb-0">{order.form.phone}</p>
-        <p className="mb-0">
-          {order.form.address}, {order.form.city}, {order.form.state} -{" "}
-          {order.form.pincode}
+        <p className="card-text">
+          <strong>Total:</strong> ₹{order.total}
+        </p>
+        <p className="card-text">
+          <strong>Payment:</strong> {order.paymentMethod.toUpperCase()}
+          {order.paymentReference && ` (${order.paymentReference})`}
+        </p>
+        <p className="card-text">
+          <strong>Shipping to:</strong> {order.form.fullName}, {order.form.address},{" "}
+          {order.form.city}, {order.form.state} - {order.form.pincode}
         </p>
 
-        {order.status !== "Cancelled" && (
+        <ul className="list-group mt-3">
+          {order.cartItems.map((item) => (
+            <li
+              key={item.id}
+              className="list-group-item d-flex justify-content-between align-items-center"
+            >
+              <div>
+                <strong>{item.name}</strong> <br />
+                Qty: {item.quantity}
+              </div>
+              <span>₹{item.price * item.quantity}</span>
+            </li>
+          ))}
+        </ul>
+
+        {order.status === "Pending" && (
           <button
             className="btn btn-outline-danger mt-3"
-            onClick={() => handleCancelOrder(order.orderId)}
+            onClick={() => handleCancelOrder(order.id)}
           >
-            ❌ Cancel Order
+            Cancel Order
           </button>
         )}
       </div>
@@ -116,25 +97,21 @@ const Order = () => {
 
   return (
     <div className="container my-5">
-      <h2 className="mb-4">My Orders</h2>
+      <h2 className="mb-4">My Orders 📦</h2>
 
       {newOrders.length > 0 && (
         <>
-          <h4 className="text-success">Thank you for your order!</h4>
+          <h4 className="mb-3 text-primary">🕐 New Orders</h4>
           {newOrders.map(renderOrderCard)}
         </>
       )}
 
-      {oldOrders.length > 0 && (
+      {previousOrders.length > 0 && (
         <>
-          <h4 className="mt-5">📦 Previous Orders</h4>
-          {oldOrders.map(renderOrderCard)}
+          <h4 className="mb-3 text-success mt-5">📦 Previous Orders</h4>
+          {previousOrders.map(renderOrderCard)}
         </>
       )}
-
-      <button className="btn btn-primary mt-4" onClick={() => navigate("/")}>
-        🛍 Continue Shopping
-      </button>
     </div>
   );
 };

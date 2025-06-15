@@ -36,26 +36,26 @@ const Checkout = () => {
     if (useRegisteredAddress) {
       const currentUser = JSON.parse(localStorage.getItem("currentUser"));
       if (currentUser) {
-        setForm({
-          ...form,
+        setForm((prev) => ({
+          ...prev,
           fullName: `${currentUser.firstName} ${currentUser.lastName}`,
           phone: currentUser.phone,
           address: currentUser.address,
           city: currentUser.city,
           state: currentUser.state,
           pincode: currentUser.zip,
-        });
+        }));
       }
     } else {
-      setForm({
-        ...form,
+      setForm((prev) => ({
+        ...prev,
         fullName: "",
         phone: "",
         address: "",
         city: "",
         state: "",
         pincode: "",
-      });
+      }));
     }
   }, [useRegisteredAddress]);
 
@@ -69,7 +69,20 @@ const Checkout = () => {
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
+  const saveOrderToStorage = (orderData) => {
+    const allOrders = JSON.parse(localStorage.getItem("orders")) || [];
+    allOrders.push(orderData);
+    localStorage.setItem("orders", JSON.stringify(allOrders));
+    localStorage.setItem("latestOrderId", orderData.id);
+  };
+
   const handlePlaceOrder = () => {
+    const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+    if (!currentUser) {
+      alert("Please login first.");
+      return;
+    }
+
     const tempId = Date.now();
     const paymentRef =
       form.paymentMethod === "upi"
@@ -88,8 +101,24 @@ const Checkout = () => {
       return;
     }
 
+    const baseOrder = {
+  id: tempId,
+  userId: currentUser.userId,         // ✅ Add this line
+  email: currentUser.email,           // ✅ Optional: for future fallback
+  username: currentUser.username,
+  cartItems,
+  form,
+  total,
+  status: "Pending",
+  paymentMethod: form.paymentMethod,
+  paymentReference: paymentRef,
+  timestamp: new Date().toISOString(),
+};
+
+
     if (form.paymentMethod === "upi") {
       const upiRegex = /^[\w.\-]{2,256}@[a-zA-Z]{2,64}$/;
+      const suffix = upiId.split("@")[1];
       const allowedSuffixes = [
         "oksbi",
         "okhdfcbank",
@@ -97,7 +126,6 @@ const Checkout = () => {
         "okicici",
         "upi",
       ];
-      const suffix = upiId.split("@")[1];
 
       if (!upiRegex.test(upiId)) {
         alert("Please enter a valid UPI ID (e.g., name@oksbi)");
@@ -113,7 +141,6 @@ const Checkout = () => {
       setShowPaymentModal(true);
       setIsProcessing(true);
 
-      // Simulate processing with 90% success
       setTimeout(() => {
         setIsProcessing(false);
         const isSuccess = Math.random() > 0.1;
@@ -124,18 +151,14 @@ const Checkout = () => {
             setShowPaymentModal(false);
             if (!location.state?.cartItems) localStorage.removeItem("cart");
 
-            navigate("/user/orders", {
-              state: {
-                cartItems,
-                total,
-                form,
-                upiId,
-                upiApp,
-                paymentNote,
-                paymentReference: paymentRef,
-                tempId,
-              },
+            saveOrderToStorage({
+              ...baseOrder,
+              upiId,
+              upiApp,
+              paymentNote,
             });
+
+            navigate("/user/orders");
           }, 1500);
         } else {
           setTimeout(() => {
@@ -148,9 +171,8 @@ const Checkout = () => {
       alert("Order placed successfully with Cash on Delivery!");
       if (!location.state?.cartItems) localStorage.removeItem("cart");
 
-      navigate("/user/orders", {
-        state: { cartItems, total, form, paymentReference: paymentRef, tempId },
-      });
+      saveOrderToStorage(baseOrder);
+      navigate("/user/orders");
     }
   };
 
@@ -159,212 +181,215 @@ const Checkout = () => {
   }
 
   return (
-    <div className="container my-5">
-      <h2 className="mb-4">Checkout</h2>
-      <div className="row g-5">
-        <div className="col-md-7">
-          <h5>Shipping Details</h5>
-          <div className="form-check mb-3">
-            <input
-              className="form-check-input"
-              type="checkbox"
-              id="useRegisteredAddress"
-              checked={useRegisteredAddress}
-              onChange={(e) => setUseRegisteredAddress(e.target.checked)}
-            />
-            <label className="form-check-label" htmlFor="useRegisteredAddress">
-              Use my registered address
-            </label>
-          </div>
-
-          <form>
-            <div className="mb-3">
-              <label className="form-label">Full Name</label>
-              <input
-                type="text"
-                className="form-control"
-                name="fullName"
-                value={form.fullName}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Phone Number</label>
-              <input
-                type="tel"
-                className="form-control"
-                name="phone"
-                value={form.phone}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label">Address</label>
-              <textarea
-                className="form-control"
-                name="address"
-                rows={2}
-                value={form.address}
-                onChange={handleChange}
-              />
-            </div>
-            <div className="row">
-              <div className="col-md-6 mb-3">
-                <label className="form-label">City</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="city"
-                  value={form.city}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="col-md-6 mb-3">
-                <label className="form-label">State</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="state"
-                  value={form.state}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="col-md-6 mb-3">
-                <label className="form-label">Pin Code</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  name="pincode"
-                  value={form.pincode}
-                  onChange={handleChange}
-                />
-              </div>
-            </div>
-
-            <h6 className="mt-4">Payment Method</h6>
-            <div className="form-check">
+    <>
+      <div className="container my-5">
+        <h2 className="mb-4">Checkout</h2>
+        <div className="row g-5">
+          {/* Shipping Details */}
+          <div className="col-md-7">
+            <h5>Shipping Details</h5>
+            <div className="form-check mb-3">
               <input
                 className="form-check-input"
-                type="radio"
-                name="paymentMethod"
-                value="cod"
-                checked={form.paymentMethod === "cod"}
-                onChange={handleChange}
+                type="checkbox"
+                id="useRegisteredAddress"
+                checked={useRegisteredAddress}
+                onChange={(e) => setUseRegisteredAddress(e.target.checked)}
               />
-              <label className="form-check-label">Cash on Delivery (COD)</label>
+              <label className="form-check-label" htmlFor="useRegisteredAddress">
+                Use my registered address
+              </label>
             </div>
 
-            <div className="form-check mb-2">
-              <input
-                className="form-check-input"
-                type="radio"
-                name="paymentMethod"
-                value="upi"
-                checked={form.paymentMethod === "upi"}
-                onChange={handleChange}
-              />
-              <label className="form-check-label">UPI / Net Banking</label>
-            </div>
-
-            {form.paymentMethod === "upi" && (
-              <div className="border p-3 rounded bg-light mt-2">
-                <label className="form-label">Enter UPI ID</label>
+            <form>
+              {/* Form Fields */}
+              <div className="mb-3">
+                <label className="form-label">Full Name</label>
                 <input
                   type="text"
-                  className="form-control mb-2"
-                  placeholder="example@upi"
-                  value={upiId}
-                  onChange={(e) => setUpiId(e.target.value)}
-                />
-
-                <label className="form-label">Select UPI App</label>
-                <select
-                  className="form-select mb-2"
-                  value={upiApp}
-                  onChange={(e) => setUpiApp(e.target.value)}
-                >
-                  <option value="Google Pay">Google Pay</option>
-                  <option value="PhonePe">PhonePe</option>
-                  <option value="Paytm">Paytm</option>
-                  <option value="BHIM">BHIM</option>
-                </select>
-
-                <label className="form-label">Payment Note</label>
-                <input
-                  type="text"
-                  className="form-control mb-2"
-                  placeholder="Order #123456"
-                  value={paymentNote}
-                  onChange={(e) => setPaymentNote(e.target.value)}
-                />
-
-                <label className="form-label">Amount</label>
-                <input
                   className="form-control"
-                  value={`₹${total}`}
-                  disabled
+                  name="fullName"
+                  value={form.fullName}
+                  onChange={handleChange}
                 />
               </div>
-            )}
-          </form>
-        </div>
-
-        <div className="col-md-5">
-          <h5>Order Summary</h5>
-          <ul className="list-group mb-3">
-            {cartItems.map((item) => (
-              <li
-                key={item.id}
-                className="list-group-item d-flex justify-content-between align-items-center"
-              >
-                <div>
-                  <h6>{item.name}</h6>
-                  <small>Qty: {item.quantity}</small>
+              <div className="mb-3">
+                <label className="form-label">Phone Number</label>
+                <input
+                  type="tel"
+                  className="form-control"
+                  name="phone"
+                  value={form.phone}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label">Address</label>
+                <textarea
+                  className="form-control"
+                  name="address"
+                  rows={2}
+                  value={form.address}
+                  onChange={handleChange}
+                />
+              </div>
+              <div className="row">
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">City</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="city"
+                    value={form.city}
+                    onChange={handleChange}
+                  />
                 </div>
-                <span>₹{item.price * item.quantity}</span>
-              </li>
-            ))}
-            <li className="list-group-item d-flex justify-content-between">
-              <strong>Total</strong>
-              <strong>₹{total}</strong>
-            </li>
-          </ul>
-          <button className="btn btn-success w-100" onClick={handlePlaceOrder}>
-            ✅ Place Order
-          </button>
-        </div>
-      </div>
-
-      {showPaymentModal && (
-        <div
-          className="modal d-block"
-          tabIndex="-1"
-          style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-        >
-          <div className="modal-dialog modal-dialog-centered">
-            <div className="modal-content text-center">
-              <div className="modal-header">
-                <h5 className="modal-title">Processing Payment</h5>
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">State</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="state"
+                    value={form.state}
+                    onChange={handleChange}
+                  />
+                </div>
+                <div className="col-md-6 mb-3">
+                  <label className="form-label">Pin Code</label>
+                  <input
+                    type="text"
+                    className="form-control"
+                    name="pincode"
+                    value={form.pincode}
+                    onChange={handleChange}
+                  />
+                </div>
               </div>
-              <div className="modal-body">
-                {isProcessing ? (
-                  <>
-                    <div className="spinner-border text-primary" role="status"></div>
-                    <p className="mt-3">Processing UPI Payment via {upiApp}...</p>
-                  </>
-                ) : (
-                  <>
-                    <div className="text-success fs-1">✔</div>
-                    <p className="mt-2">Payment Complete!</p>
-                    <small>Ref ID: {txnId}</small>
-                  </>
-                )}
+
+              {/* Payment Method */}
+              <h6 className="mt-4">Payment Method</h6>
+              <div className="form-check">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  value="cod"
+                  checked={form.paymentMethod === "cod"}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label">Cash on Delivery (COD)</label>
+              </div>
+
+              <div className="form-check mb-2">
+                <input
+                  className="form-check-input"
+                  type="radio"
+                  name="paymentMethod"
+                  value="upi"
+                  checked={form.paymentMethod === "upi"}
+                  onChange={handleChange}
+                />
+                <label className="form-check-label">UPI / Net Banking</label>
+              </div>
+
+              {form.paymentMethod === "upi" && (
+                <div className="border p-3 rounded bg-light mt-2">
+                  <label className="form-label">Enter UPI ID</label>
+                  <input
+                    type="text"
+                    className="form-control mb-2"
+                    placeholder="example@upi"
+                    value={upiId}
+                    onChange={(e) => setUpiId(e.target.value)}
+                  />
+
+                  <label className="form-label">Select UPI App</label>
+                  <select
+                    className="form-select mb-2"
+                    value={upiApp}
+                    onChange={(e) => setUpiApp(e.target.value)}
+                  >
+                    <option value="Google Pay">Google Pay</option>
+                    <option value="PhonePe">PhonePe</option>
+                    <option value="Paytm">Paytm</option>
+                    <option value="BHIM">BHIM</option>
+                  </select>
+
+                  <label className="form-label">Payment Note</label>
+                  <input
+                    type="text"
+                    className="form-control mb-2"
+                    placeholder="Order #123456"
+                    value={paymentNote}
+                    onChange={(e) => setPaymentNote(e.target.value)}
+                  />
+
+                  <label className="form-label">Amount</label>
+                  <input className="form-control" value={`₹${total}`} disabled />
+                </div>
+              )}
+            </form>
+          </div>
+
+          {/* Order Summary */}
+          <div className="col-md-5">
+            <h5>Order Summary</h5>
+            <ul className="list-group mb-3">
+              {cartItems.map((item) => (
+                <li
+                  key={item.id}
+                  className="list-group-item d-flex justify-content-between align-items-center"
+                >
+                  <div>
+                    <h6>{item.name}</h6>
+                    <small>Qty: {item.quantity}</small>
+                  </div>
+                  <span>₹{item.price * item.quantity}</span>
+                </li>
+              ))}
+              <li className="list-group-item d-flex justify-content-between">
+                <strong>Total</strong>
+                <strong>₹{total}</strong>
+              </li>
+            </ul>
+            <button className="btn btn-success w-100" onClick={handlePlaceOrder}>
+              ✅ Place Order
+            </button>
+          </div>
+        </div>
+
+        {/* Payment Modal */}
+        {showPaymentModal && (
+          <div
+            className="modal d-block"
+            tabIndex="-1"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <div className="modal-dialog modal-dialog-centered">
+              <div className="modal-content text-center">
+                <div className="modal-header">
+                  <h5 className="modal-title">Processing Payment</h5>
+                </div>
+                <div className="modal-body">
+                  {isProcessing ? (
+                    <>
+                      <div className="spinner-border text-primary" role="status"></div>
+                      <p className="mt-3">Processing UPI Payment via {upiApp}...</p>
+                    </>
+                  ) : (
+                    <>
+                      <div className="text-success fs-1">✔</div>
+                      <p className="mt-2">Payment Complete!</p>
+                      <small>Ref ID: {txnId}</small>
+                    </>
+                  )}
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </>
   );
 };
 

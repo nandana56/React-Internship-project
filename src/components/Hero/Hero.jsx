@@ -68,9 +68,7 @@ const Hero = ({ handleOrderPopup }) => {
                     {data.description}
                   </p>
                   <div data-aos="fade-up" data-aos-duration="500" data-aos-delay="300">
-                    <button className="order-btn" onClick={handleOrderPopup}>
-                      Order Now
-                    </button>
+                    
                   </div>
                 </div>
 

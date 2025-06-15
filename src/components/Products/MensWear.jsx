@@ -1,6 +1,10 @@
-import React from "react";
+import React, { useContext } from "react";
 import ProductList from "./ProductList";
-import products from "./productData"; // Move your `products` array into its own file like productData.js
+import { ProductContext } from "../context/ProductContext";
 
-const MensWear = () => <ProductList category="Mens Wear" products={products} />;
+const MensWear = () => {
+  const { products } = useContext(ProductContext);
+  return <ProductList category="Mens Wear" />;
+};
+
 export default MensWear;

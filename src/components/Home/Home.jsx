@@ -4,7 +4,7 @@ import Hero from '../Hero/Hero';
 import TopRatedproducts from '../Products/TopRatedproducts';
 import Banner from '../Banner/Banner';
 
-import Testimonials from '../Testimonials/Testimonials';
+
 import Footer from '../Footer/Footer';
 
 
@@ -12,14 +12,14 @@ import Footer from '../Footer/Footer';
 
 
 
-const Home = ({ handleOrderPopup }) => {
+const Home = () => {
   return (
     <div>
 
-      <Hero handleOrderPopup={handleOrderPopup} />
-      <TopRatedproducts handleOrderPopup={handleOrderPopup} />
+      <Hero  />
+      <TopRatedproducts  />
       <Banner/>
-      <Testimonials/>
+     
       <Footer/>
 
 

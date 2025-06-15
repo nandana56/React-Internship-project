@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./SignUp.css"; // 👈 Include the CSS
+import "./SignUp.css";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -51,6 +51,7 @@ const SignUp = () => {
       confirmPassword,
     } = formData;
 
+    // Basic field validation
     if (
       !firstName.trim() ||
       !lastName.trim() ||
@@ -64,37 +65,36 @@ const SignUp = () => {
       !password ||
       !confirmPassword
     ) {
-      setError("All fields are required.");
-      return;
+      return setError("All fields are required.");
     }
 
     if (!validatePhone(phone)) {
-      setError("Phone number must be exactly 10 digits.");
-      return;
+      return setError("Phone number must be exactly 10 digits.");
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
-      return;
+      return setError("Passwords do not match.");
     }
 
     if (!validatePassword(password)) {
-      setError(
+      return setError(
         "Password must have at least 4 characters, including 1 uppercase letter, 1 lowercase letter, 1 digit, and 1 special character."
       );
-      return;
     }
 
     try {
       const users = JSON.parse(localStorage.getItem("users")) || [];
       const emailExists = users.some((user) => user.email === email);
+
       if (emailExists) {
-        setError("User with this email already exists.");
-        return;
+        return setError("User with this email already exists.");
       }
 
-      // ✅ Add role to user data
-      const newUser = { ...formData, role: "user" };
+      const newUser = {
+        userId: Date.now().toString(), // Unique ID
+        ...formData,
+        role: "user", // Default role
+      };
 
       users.push(newUser);
       localStorage.setItem("users", JSON.stringify(users));
@@ -218,7 +218,7 @@ const SignUp = () => {
             type="password"
             name="password"
             className="form-control signup-input"
-            placeholder="Password (Min 4 chars, 1 uppercase, 1 digit, 1 special char)"
+            placeholder="Password"
             value={formData.password}
             onChange={handleChange}
           />

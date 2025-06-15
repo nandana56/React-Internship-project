@@ -1,15 +1,17 @@
-import React from "react";
+import React, { useContext } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import products from "./productData"; // adjust the path as needed
+import { ProductContext } from "../context/ProductContext"; // adjust the path as per your folder structure
 
 const SearchResults = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { products } = useContext(ProductContext); // ✅ useContext for products
 
   const currentUser = JSON.parse(localStorage.getItem("currentUser"));
-  const role = currentUser?.role;
+  const role = currentUser?.role || "user";
 
-  const query = new URLSearchParams(location.search).get("q")?.toLowerCase() || "";
+  const query =
+    new URLSearchParams(location.search).get("q")?.toLowerCase() || "";
 
   const results = products.filter(
     (product) =>
@@ -29,18 +31,22 @@ const SearchResults = () => {
           {results.map((product) => (
             <div key={product.id} className="col-md-3 mb-4">
               <div className="card h-100">
-                <img src={product.image} alt={product.name} className="card-img-top" />
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="card-img-top"
+                />
                 <div className="card-body">
                   <h5 className="card-title">{product.name}</h5>
                   <p className="card-text">₹{product.price}</p>
                   <button
                     className="btn btn-primary"
                     onClick={() => {
-                      if (role === "admin") {
-                        navigate(`/admin/viewproduct/${product.id}`);
-                      } else {
-                        navigate(`/user/viewproduct/${product.id}`);
-                      }
+                      navigate(
+                        role === "admin"
+                          ? `/admin/viewproduct/${product.id}`
+                          : `/user/viewproduct/${product.id}`
+                      );
                     }}
                   >
                     View

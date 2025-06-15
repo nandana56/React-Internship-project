@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
-import products from "./productData";
+import { ProductContext } from "../context/ProductContext"; // ✅ use context
 import "./TopSellingProducts.css";
 
 const TopSellingProducts = () => {
   const navigate = useNavigate();
+  const { products } = useContext(ProductContext); // ✅ get products from context
   const [topSelling, setTopSelling] = useState([]);
 
   useEffect(() => {
@@ -28,7 +29,7 @@ const TopSellingProducts = () => {
       .sort((a, b) => b.soldCount - a.soldCount);
 
     setTopSelling(topProducts);
-  }, []);
+  }, [products]); // ✅ depend on context products
 
   const handleView = (id) => {
     const user = JSON.parse(localStorage.getItem("currentUser"));

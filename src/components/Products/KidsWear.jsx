@@ -1,6 +1,8 @@
 import React from "react";
 import ProductList from "./ProductList";
-import products from "./productData";
 
-const KidsWear = () => <ProductList category="Kids Wear" products={products} />;
+const KidsWear = () => {
+  return <ProductList category="Kids Wear" />;
+};
+
 export default KidsWear;

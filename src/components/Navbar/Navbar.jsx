@@ -205,11 +205,7 @@ const Navbar = ({ handleOrderPopup }) => {
           Admin Home
         </Link>
       </li>
-      <li>
-        <Link className="dropdown-item" to="/admin/manageproducts">
-          Manage Products
-        </Link>
-      </li>
+      
       <li>
         <button className="dropdown-item" onClick={handleLogout}>
           Logout

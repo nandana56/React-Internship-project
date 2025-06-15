@@ -5,15 +5,23 @@ const Cart = () => {
   const [cartItems, setCartItems] = useState([]);
   const navigate = useNavigate();
 
-  // Load cart from localStorage on mount
-  useEffect(() => {
-    const storedCart = JSON.parse(localStorage.getItem("cart")) || [];
-    setCartItems(storedCart);
-  }, []);
+  const currentUser = JSON.parse(localStorage.getItem("currentUser"));
+  const userId = currentUser?.userId;
 
-  // Update both localStorage and state
+  useEffect(() => {
+    if (userId) {
+      const storedCarts = JSON.parse(localStorage.getItem("cart")) || [];
+      const userCart = storedCarts.filter(item => item.userId === userId);
+      setCartItems(userCart);
+    }
+  }, [userId]);
+
   const updateCart = (updatedCart) => {
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    const allCarts = JSON.parse(localStorage.getItem("cart")) || [];
+
+    // Remove old items for this user and add updated ones
+    const updatedAllCarts = allCarts.filter(item => item.userId !== userId).concat(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedAllCarts));
     setCartItems(updatedCart);
   };
 
@@ -38,7 +46,7 @@ const Cart = () => {
 
   const proceedToCheckout = () => {
     alert("Proceeding to checkout");
-    navigate("/user/checkout"); // optional: implement this route
+    navigate("/user/checkout");
   };
 
   if (cartItems.length === 0) {

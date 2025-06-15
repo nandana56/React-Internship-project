@@ -1,34 +1,49 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
+import { ProductContext } from "../context/ProductContext";
 import "./ProductList.css";
 
-const ProductList = ({ category, products }) => {
+const ProductList = ({ category }) => {
   const navigate = useNavigate();
+  const { products } = useContext(ProductContext);
+
   const [brandFilter, setBrandFilter] = useState("All");
   const [priceFilter, setPriceFilter] = useState("All");
   const [ratingFilter, setRatingFilter] = useState("All");
 
   const user = JSON.parse(localStorage.getItem("currentUser"));
 
-  // Extract unique brands for this category
+  // Extract unique brands for this category (case-insensitive)
   const brands = [
-    ...new Set(products.filter((p) => p.category === category).map((p) => p.brand)),
+    ...new Set(
+      products
+        .filter((p) => p.category.toLowerCase() === category.toLowerCase())
+        .map((p) => p.brand)
+    ),
   ];
 
-  // Save all products to localStorage
+  // Debugging support
   useEffect(() => {
-    localStorage.setItem("allProducts", JSON.stringify(products));
-  }, [products]);
+    console.log({
+      productsInContext: products.length,
+      categoryPassed: category,
+    });
+  }, [products, category]);
 
-  // Apply category + filters
+  // Apply filters
   const filteredProducts = products.filter((p) => {
-    const inCategory = p.category === category;
-    const brandMatch = brandFilter === "All" || p.brand === brandFilter;
+    const inCategory = p.category.toLowerCase() === category.toLowerCase();
+
+    const brandMatch =
+      brandFilter === "All" ||
+      p.brand.toLowerCase() === brandFilter.toLowerCase();
+
     const priceMatch =
       priceFilter === "All" ||
       (priceFilter === "low" && p.price <= 700) ||
       (priceFilter === "mid" && p.price > 700 && p.price <= 1500) ||
       (priceFilter === "high" && p.price > 1500);
+
     const ratingMatch =
       ratingFilter === "All" || p.rating >= parseFloat(ratingFilter);
 
@@ -106,7 +121,6 @@ const ProductList = ({ category, products }) => {
                 <div className="card-body d-flex flex-column justify-content-between">
                   <h5 className="card-title pl-card-title">{item.name}</h5>
                   <p className="card-text fw-bold pl-card-price">₹{item.price}</p>
-                 
                   <button
                     className="btn btn-primary mt-auto pl-view-btn"
                     onClick={() => handleView(item)}

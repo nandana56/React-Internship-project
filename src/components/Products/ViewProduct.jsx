@@ -1,67 +1,84 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useContext } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { FaHeart, FaRegHeart } from "react-icons/fa";
+import { ProductContext } from "../context/ProductContext";
 
 const ViewProduct = () => {
   const { id } = useParams();
   const { state } = useLocation();
   const navigate = useNavigate();
 
-  const [product, setProduct] = useState(state || null);
+  const { products, setProducts } = useContext(ProductContext);
+  const [product, setProduct] = useState(state?.product || null);
   const [isWishlisted, setIsWishlisted] = useState(false);
 
   const user = JSON.parse(localStorage.getItem("currentUser"));
 
-  // Load product if page is refreshed and state is lost
+  // Load product from context or fallback to passed state
   useEffect(() => {
-    if (!state) {
-      const allProducts = JSON.parse(localStorage.getItem("allProducts")) || [];
-      const foundProduct = allProducts.find(
-        (item) => String(item.id) === String(id)
-      );
-      setProduct(foundProduct || null);
-    }
-  }, [id, state]);
+    const found = products.find((item) => String(item.id) === String(id));
+    setProduct(found || state?.product || null);
+  }, [id, state, products]);
 
   useEffect(() => {
     if (product && user?.role === "user") {
       const wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
-      const alreadyInWishlist = wishlist.some(
-        (item) => item.id === product.id
-      );
+      const alreadyInWishlist = wishlist.some((item) => item.id === product.id);
       setIsWishlisted(alreadyInWishlist);
     }
   }, [product, user]);
 
-  const toggleWishlist = () => {
-    if (!product) return;
-    let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
-    const exists = wishlist.some((item) => item.id === product.id);
+ const toggleWishlist = () => {
+  if (!product || !user?.userId) return;
 
-    if (exists) {
-      wishlist = wishlist.filter((item) => item.id !== product.id);
-      setIsWishlisted(false);
-      alert("Removed from wishlist");
-    } else {
-      wishlist.push(product);
-      setIsWishlisted(true);
-      alert("Added to wishlist");
-    }
+  let wishlist = JSON.parse(localStorage.getItem("wishlist")) || [];
 
-    localStorage.setItem("wishlist", JSON.stringify(wishlist));
-  };
+  const exists = wishlist.some(
+    (item) => item.id === product.id && item.userId === user.userId
+  );
+
+  if (exists) {
+    wishlist = wishlist.filter(
+      (item) => !(item.id === product.id && item.userId === user.userId)
+    );
+    setIsWishlisted(false);
+    alert("Removed from wishlist");
+  } else {
+    wishlist.push({ ...product, userId: user.userId });
+    setIsWishlisted(true);
+    alert("Added to wishlist");
+  }
+
+  localStorage.setItem("wishlist", JSON.stringify(wishlist));
+};
+
 
   const handleAddToCart = () => {
-    if (!product) return;
-    let cart = JSON.parse(localStorage.getItem("cart")) || [];
+    if (!product || !user?.userId) return;
 
-    if (!cart.some((item) => item.id === product.id)) {
-      cart.push({ ...product, quantity: 1 });
-      localStorage.setItem("cart", JSON.stringify(cart));
-      alert("Added to cart");
-    } else {
+    const allCarts = JSON.parse(localStorage.getItem("cart")) || [];
+
+    // Filter this user's cart
+    const userCart = allCarts.filter((item) => item.userId === user.userId);
+
+    // Check if product already in cart
+    const alreadyInCart = userCart.some((item) => item.id === product.id);
+
+    if (alreadyInCart) {
       alert("Already in cart");
+      return;
     }
+
+    const newItem = {
+      ...product,
+      quantity: 1,
+      userId: user.userId,
+    };
+
+    const updatedAllCarts = [...allCarts, newItem];
+
+    localStorage.setItem("cart", JSON.stringify(updatedAllCarts));
+    alert("Added to cart");
   };
 
   const handleBuyNow = () => {
@@ -77,18 +94,17 @@ const ViewProduct = () => {
 
   const handleDeleteProduct = () => {
     if (!product) return;
-    const allProducts = JSON.parse(localStorage.getItem("allProducts")) || [];
 
-    // Ensure ID comparison is reliable
-    const updatedProducts = allProducts.filter(
+    const updatedProducts = products.filter(
       (item) => String(item.id) !== String(product.id)
     );
 
+    setProducts(updatedProducts);
     localStorage.setItem("allProducts", JSON.stringify(updatedProducts));
     alert("Product deleted");
 
-    // Redirect to category-specific ProductList
-    navigate(`/admin/products/${product.category.toLowerCase()}`);
+    const categoryPath = product.category.replace(/\s+/g, "").toLowerCase();
+    navigate(`/${categoryPath}`);
   };
 
   if (!product) {
@@ -98,7 +114,6 @@ const ViewProduct = () => {
   return (
     <div className="container my-5">
       <div className="row g-4">
-        {/* Product Image */}
         <div className="col-md-5 text-center">
           <img
             src={product.image}
@@ -108,22 +123,32 @@ const ViewProduct = () => {
           />
         </div>
 
-        {/* Product Info */}
         <div className="col-md-7">
           <h2>{product.name}</h2>
           <p className="text-muted">{product.description}</p>
           <h4 className="text-primary">₹{product.price}</h4>
 
           <ul className="list-unstyled">
-            <li><strong>Brand:</strong> {product.brand}</li>
-            <li><strong>Category:</strong> {product.category}</li>
-            <li><strong>Rating:</strong> ⭐ {product.rating} / 5</li>
-            <li><strong>Stock:</strong> In Stock</li>
-            <li><strong>Delivery:</strong> Usually delivered in 3–5 days</li>
-            <li><strong>Return Policy:</strong> 7-day replacement only</li>
+            <li>
+              <strong>Brand:</strong> {product.brand}
+            </li>
+            <li>
+              <strong>Category:</strong> {product.category}
+            </li>
+            <li>
+              <strong>Rating:</strong> ⭐ {product.rating} / 5
+            </li>
+            <li>
+              <strong>Stock:</strong> In Stock
+            </li>
+            <li>
+              <strong>Delivery:</strong> Usually delivered in 3–5 days
+            </li>
+            <li>
+              <strong>Return Policy:</strong> 7-day replacement only
+            </li>
           </ul>
 
-          {/* Role-based buttons */}
           {user?.role === "user" && (
             <div className="d-flex flex-wrap gap-3 mt-3">
               <button className="btn btn-success" onClick={handleAddToCart}>
@@ -164,7 +189,6 @@ const ViewProduct = () => {
         </div>
       </div>
 
-      {/* Product Description Section */}
       <div className="mt-5">
         <h5>Product Description</h5>
         <p>

@@ -1,8 +1,7 @@
 import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap/dist/js/bootstrap.bundle.min.js";
-import AOS from "aos";
-import "aos/dist/aos.css";
+
 import "./App.css";
 import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
@@ -11,7 +10,7 @@ import Home from "./components/Home/Home";
 import TopRatedproducts from "./components/Products/TopRatedproducts";
 import KidsWear from "./components/Products/KidsWear";
 import MensWear from "./components/Products/MensWear";
-import WomensWear from "./components/Products/Womenswear";
+import WomensWear from "./components/Products/WomensWear";
 import TopSellingproducts from "./components/Products/TopSellingproducts";
 import TrendingProducts from "./components/Products/TrendingProducts";
 import SearchResults from "./components/Products/SearchResults";
@@ -22,7 +21,7 @@ import UserProfile from "./components/User/UserProfile";
 
 import UserAccount from "./components/User/UserAccount";
 
-import Editprofile from "./components/User/Editprofile";
+import EditProduct from "./components/Admin/EditProduct";
 import UserLayout from "./components/User/UserLayout";
 import ProtectedRoute from "./components/Common/ProtectedRoute";
 import Unauthorized from "./components/Common/unauthorized";
@@ -34,28 +33,21 @@ import Order from "./components/Products/Order";
 
 import AdminLogin from "./components/Admin/AdminLogin";
 import AdminDashboard from "./components/Admin/AdminDashboard";
-import ViewAllUsers from "./components/Admin/ViewAllUsers";
+
 import AllOrders from "./components/Admin/AllOrders";
 import Addproduct from "./components/Admin/Addproduct";
-import ManageProducts from "./components/Admin/ManageProducts";
-import EditProduct from "./components/Products/EditProduct";
-import ProductList from "./components/Products/ProductList";
+
+import Editprofile from "./components/User/Editprofile";
+
+
+import ViewAllUsers from "./components/Admin/ViewAllUsers";
+import AdminViewUser from "./components/Admin/AdminViewUser";
+
+
 
 const App = () => {
-  const [orderPopup, setOrderPopup] = React.useState(false);
-
-  const handleOrderPopup = () => {
-    setOrderPopup(!orderPopup);
-  };
-  React.useEffect(() => {
-    AOS.init({
-      offset: 100,
-      duration: 800,
-      easing: "ease-in-sine",
-      delay: 100,
-    });
-    AOS.refresh();
-  }, []);
+  
+  
 
   return (
     <>
@@ -65,7 +57,7 @@ const App = () => {
         <Routes>
           <Route
             path="/"
-            element={<Home handleOrderPopup={handleOrderPopup} />}
+            element={<Home  />}
           />
           <Route path="/topratedproducts" element={<TopRatedproducts />} />
           <Route path="/topsellingproducts" element={<TopSellingproducts />} />
@@ -118,6 +110,16 @@ const App = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/admin/adminviewuser/:id"
+            element={
+              <ProtectedRoute allowedRoles={["admin"]}>
+                <AdminViewUser />
+              </ProtectedRoute>
+            }
+          />
+
+
 
            <Route
             path="/admin/allorders"
@@ -137,14 +139,7 @@ const App = () => {
             }
           />
 
-          <Route
-            path="/admin/manageproducts"
-            element={
-              <ProtectedRoute allowedRoles={["admin"]}>
-                <ManageProducts />
-              </ProtectedRoute>
-            }
-          />
+          
 
 
           
@@ -166,19 +161,7 @@ const App = () => {
     </ProtectedRoute>
   }
 />
-          
-       
-       <Route
-  path="/admin/products/:category"
-  element={
-    <ProtectedRoute allowedRoles={["admin"]}>
-      <ProductList />
-    </ProtectedRoute>
-  }
-/>
-
      
-       
         </Routes>
       </BrowserRouter>
     </>
